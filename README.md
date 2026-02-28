@@ -1,6 +1,6 @@
 # MEV Bots
 
-A comprehensive collection of **Maximal Extractable Value (MEV)** bots implemented in Python and Rust, supporting multiple blockchain networks.
+A comprehensive collection of **Maximal Extractable Value (MEV)** bots implemented in Python and Rust, supporting multiple blockchain networks — including **AI-powered bots** that use machine learning and reinforcement learning to identify and execute opportunities.
 
 > ⚠️ **Disclaimer:** These implementations are provided for **educational and research purposes only**. MEV extraction can harm other users (e.g., sandwich attacks). Always understand the ethical and legal implications before deploying any bot. Never deploy on mainnet without thorough testing.
 
@@ -18,10 +18,79 @@ Maximal Extractable Value (MEV) refers to the maximum value that can be extracte
 | [Sandwich Bot](python/sandwich_bot/) | Python | EVM | Front-run + back-run victim swaps |
 | [Liquidation Bot](python/liquidation_bot/) | Python | EVM (Aave, Compound, dYdX) | Liquidate undercollateralized positions |
 | [Flash Loan Bot](python/flash_loan_bot/) | Python | EVM (Aave v3) | Flash loan–powered atomic arbitrage |
+| [**AI MEV Bot**](python/ai_bot/) | **Python** | **EVM** | **LSTM price predictor + MLP classifier + PPO RL agent** |
 | [Arbitrage Bot](rust/arbitrage_bot/) | Rust | EVM | High-performance cross-DEX arbitrage |
 | [Sandwich Bot](rust/sandwich_bot/) | Rust | EVM | High-performance sandwich attacks |
 | [Solana MEV Bot](rust/solana_bot/) | Rust | Solana | Arbitrage on Raydium / Orca |
+| [**AI MEV Bot**](rust/ai_bot/) | **Rust** | **EVM** | **ONNX Runtime inference — runs exported PyTorch/SB3 models** |
 | [Flash Loan Contract](contracts/) | Solidity | EVM | On-chain flash loan arbitrage |
+
+---
+
+## 🤖 AI-Powered MEV Bots
+
+The AI bots combine three machine-learning components to outperform simple rule-based strategies:
+
+### 1 — LSTM Price Predictor (`python/ai_bot/models/price_predictor.py`)
+- **Architecture:** Stacked LSTM with LayerNorm + MLP head
+- **Input:** Rolling window of OHLCV candles + on-chain signals (gas price, block time, mempool size)
+- **Output:** 3-class direction prediction: `down` / `flat` / `up`
+- **Use:** Pre-filter opportunities — skip entire blocks when a bearish signal is detected to protect capital
+
+### 2 — Opportunity Classifier (`python/ai_bot/models/opportunity_classifier.py`)
+- **Architecture:** MLP (PyTorch) or GradientBoostingClassifier (scikit-learn fallback)
+- **Input:** 32-dimensional transaction feature vector (value, gas price, input selector, nonce, etc.)
+- **Output:** 4-class label: `no_mev` / `sandwich_target` / `arb_trigger` / `liquidation_target`
+- **Use:** Rank thousands of pending transactions per second to focus attention on the most profitable ones
+
+### 3 — RL Agent (`python/ai_bot/models/rl_agent.py`)
+- **Algorithm:** Proximal Policy Optimisation (PPO) via stable-baselines3
+- **State:** 7-dimensional observation (gas, ETH price, mempool size, opportunities detected, block epoch, wallet balance)
+- **Actions:** `do_nothing` / `execute_arb` / `execute_sandwich` / `execute_liquidation`
+- **Reward:** Realised on-chain profit in ETH after gas costs
+- **Use:** Learn an optimal strategy that balances opportunity size, gas cost, and risk across all MEV types
+
+### Rust AI Bot (`rust/ai_bot/`)
+Runs the same models at near-zero latency using **ONNX Runtime** (`ort` crate):
+- Export trained PyTorch models to `.onnx` format once
+- Load and run inference in Rust without any Python dependency
+- Falls back to hand-crafted heuristics if model files are missing
+
+```bash
+# Export models from Python to ONNX
+cd python/ai_bot
+python - <<'EOF'
+import torch
+from models.price_predictor import PricePredictor
+m = PricePredictor(); m.load("checkpoints/price_predictor.pt")
+dummy = torch.randn(1, 30, 16)
+torch.onnx.export(m.model, dummy, "../../rust/ai_bot/models/price_predictor.onnx",
+                  input_names=["input"], output_names=["logits"])
+EOF
+
+# Build and run the Rust AI bot
+cd rust/ai_bot
+cargo build --release
+./target/release/ai_bot
+```
+
+### Training the AI Models
+
+```bash
+cd python/ai_bot
+
+# 1. Train the price predictor (requires OHLCV CSV data in data/ohlcv/)
+python training/train_price_model.py --epochs 50 --checkpoint checkpoints/price_predictor.pt
+
+# 2. Train the opportunity classifier (requires labelled mempool data)
+python training/train_classifier.py --epochs 30 --checkpoint checkpoints/opp_classifier.pkl
+
+# 3. Train the RL agent in simulation (no real funds needed)
+python training/train_rl_agent.py --total-timesteps 200000 --checkpoint checkpoints/rl_agent
+
+# 4. Run the live AI bot
+python bot.py
+```
 
 ---
 
@@ -33,15 +102,32 @@ MEV-Bots/
 │   ├── arbitrage_bot/       # Cross-DEX arbitrage (web3.py)
 │   ├── sandwich_bot/        # Sandwich attack bot
 │   ├── liquidation_bot/     # DeFi lending liquidations
-│   └── flash_loan_bot/      # Flash loan arbitrage
+│   ├── flash_loan_bot/      # Flash loan arbitrage
+│   └── ai_bot/              # AI-powered MEV bot
+│       ├── bot.py           #   Main orchestrator
+│       ├── config.py
+│       ├── models/
+│       │   ├── price_predictor.py      # LSTM price predictor
+│       │   ├── opportunity_classifier.py # MLP / GBT classifier
+│       │   └── rl_agent.py             # PPO RL agent (stable-baselines3)
+│       └── training/
+│           ├── train_price_model.py
+│           ├── train_classifier.py
+│           └── train_rl_agent.py
 ├── rust/
 │   ├── arbitrage_bot/       # High-performance arbitrage (ethers-rs)
 │   ├── sandwich_bot/        # High-performance sandwich bot
-│   └── solana_bot/          # Solana MEV (solana-client)
+│   ├── solana_bot/          # Solana MEV (solana-client)
+│   └── ai_bot/              # AI MEV bot (ONNX Runtime)
+│       └── src/
+│           ├── main.rs
+│           ├── inference.rs # ONNX model loading + inference
+│           ├── scanner.rs   # Market data + mempool scanning
+│           └── executor.rs  # Action execution
 ├── contracts/
 │   ├── interfaces/          # Solidity interfaces
 │   ├── FlashLoanArbitrage.sol
-│   └── MevHelper.sol
+│   └── MevHelper.sol        # On-chain simulation helpers
 └── scripts/
     ├── setup.sh             # Environment setup script
     └── deploy.sh            # Contract deployment script
@@ -125,6 +211,8 @@ bash ../scripts/deploy.sh
 ## Features
 
 - **Multi-chain support** — One codebase, many networks
+- **AI-powered** — LSTM price prediction, MLP opportunity classification, PPO reinforcement learning
+- **ONNX inference in Rust** — Export trained models from Python; run at nanosecond latency in Rust
 - **Gas optimization** — Dynamic gas pricing with EIP-1559 support
 - **Mempool monitoring** — Real-time pending transaction tracking
 - **Flashbots / MEV-Boost** — Private transaction bundles to avoid front-running
@@ -143,6 +231,8 @@ ETH_RPC_URL=https://mainnet.infura.io/v3/YOUR_KEY
 ETH_WS_URL=wss://mainnet.infura.io/ws/v3/YOUR_KEY
 BSC_RPC_URL=https://bsc-dataseed.binance.org/
 POLYGON_RPC_URL=https://polygon-rpc.com
+AVAX_RPC_URL=https://api.avax.network/ext/bc/C/rpc
+ARBITRUM_RPC_URL=https://arb1.arbitrum.io/rpc
 
 # Wallet
 PRIVATE_KEY=0xYOUR_PRIVATE_KEY
@@ -155,10 +245,17 @@ FLASHBOTS_SIGNER_KEY=0xYOUR_FLASHBOTS_SIGNER_KEY
 SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
 SOLANA_KEYPAIR_PATH=/path/to/keypair.json
 
-# Settings
+# General settings
 MIN_PROFIT_USD=10.0
 MAX_GAS_PRICE_GWEI=100
 SLIPPAGE_BPS=50
+TRADE_AMOUNT=0.1
+
+# AI bot
+PP_CHECKPOINT=checkpoints/price_predictor.pt
+CLF_CHECKPOINT=checkpoints/opp_classifier.pkl
+RL_CHECKPOINT=checkpoints/rl_agent
+SKIP_ON_BEARISH=true
 ```
 
 ---

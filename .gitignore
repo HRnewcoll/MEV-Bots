@@ -1,0 +1,36 @@
+# Python virtual environments
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment / secrets
+.env
+*.env
+
+# Model checkpoints (large binary files)
+checkpoints/
+*.pt
+*.onnx
+*.pkl
+
+# Rust build artifacts
+target/
+
+# Deployed addresses (auto-generated)
+deployed_addresses.json
+
+# Logs
+logs/
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
