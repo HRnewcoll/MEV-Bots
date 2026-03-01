@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEV Bot Dashboard</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css" />
+  <!-- Chart.js (local copy, no CDN required) -->
+  <script src="/static/js/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- ================================================================
+       HEADER
+  ================================================================ -->
+  <header class="header">
+    <div class="header-brand">
+      <span class="logo">⚡</span>
+      <span class="brand-name">MEV Bot Dashboard</span>
+    </div>
+    <div class="header-status">
+      <span id="status-dot" class="dot dot--stopped"></span>
+      <span id="status-text" class="status-label">Stopped</span>
+      <span class="sep">|</span>
+      <span id="chain-label" class="chain-badge">—</span>
+      <span class="sep">|</span>
+      <span id="block-label" class="block-label">Block: —</span>
+      <span class="sep">|</span>
+      <span id="gas-label" class="gas-label">Gas: — Gwei</span>
+    </div>
+    <nav class="header-nav">
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="simulation">Simulation</button>
+      <button class="tab-btn" data-tab="trades">Trades</button>
+      <button class="tab-btn" data-tab="logs">Logs</button>
+    </nav>
+  </header>
+
+  <!-- ================================================================
+       MAIN CONTENT
+  ================================================================ -->
+  <main class="main">
+
+    <!-- ---- DASHBOARD TAB ----------------------------------------- -->
+    <section id="tab-dashboard" class="tab-content active">
+
+      <!-- Stat Cards -->
+      <div class="cards-row">
+        <div class="card card--highlight">
+          <div class="card-label">Total P&amp;L</div>
+          <div class="card-value" id="stat-pnl">0.000000 ETH</div>
+          <div class="card-sub" id="stat-pnl-usd">≈ $0.00</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Total Trades</div>
+          <div class="card-value" id="stat-trades">0</div>
+          <div class="card-sub" id="stat-win-rate">Win rate: 0%</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Gas Spent</div>
+          <div class="card-value" id="stat-gas">0.000000 ETH</div>
+          <div class="card-sub" id="stat-gas-usd">≈ $0.00</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Best Trade</div>
+          <div class="card-value" id="stat-best">0.000000 ETH</div>
+          <div class="card-sub" id="stat-worst">Worst: 0 ETH</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Trades / min</div>
+          <div class="card-value" id="stat-tpm">0.00</div>
+          <div class="card-sub" id="stat-elapsed">Elapsed: 0s</div>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Cumulative P&amp;L (ETH)</div>
+          <canvas id="chart-pnl" height="160"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Trades by Strategy</div>
+          <canvas id="chart-strategy" height="160"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Gas Price History (Gwei)</div>
+          <canvas id="chart-gas" height="160"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent trades mini-table -->
+      <div class="section-title">Recent Trades</div>
+      <div class="table-wrapper">
+        <table class="data-table" id="recent-trades-table">
+          <thead>
+            <tr>
+              <th>Time</th><th>Strategy</th><th>Buy DEX</th><th>Sell DEX</th>
+              <th>Amount (in)</th><th>Amount (out)</th>
+              <th>Gas (ETH)</th><th>Profit (ETH)</th><th>Block</th>
+            </tr>
+          </thead>
+          <tbody id="recent-trades-body">
+            <tr><td colspan="9" class="empty-row">No trades yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---- SIMULATION TAB --------------------------------------- -->
+    <section id="tab-simulation" class="tab-content">
+      <div class="sim-layout">
+
+        <!-- Config panel -->
+        <div class="config-panel">
+          <div class="panel-title">⚙️ Simulation Config</div>
+
+          <label class="field-label">Chain
+            <select id="cfg-chain" class="field-input">
+              <option value="ethereum">Ethereum</option>
+              <option value="bsc">BSC</option>
+              <option value="polygon">Polygon</option>
+            </select>
+          </label>
+
+          <label class="field-label">RPC URL (leave blank for default)
+            <input id="cfg-rpc" type="text" class="field-input" placeholder="https://eth.llamarpc.com" />
+          </label>
+
+          <label class="field-label">Initial ETH Balance
+            <input id="cfg-eth" type="number" class="field-input" value="10" min="0.01" step="0.1" />
+          </label>
+
+          <label class="field-label">Trade Amount (ETH per trade)
+            <input id="cfg-trade" type="number" class="field-input" value="0.1" min="0.001" step="0.01" />
+          </label>
+
+          <label class="field-label">Min Profit Threshold (ETH)
+            <input id="cfg-minprofit" type="number" class="field-input" value="0.0005" min="0" step="0.0001" />
+          </label>
+
+          <label class="field-label">Max Gas Price (Gwei)
+            <input id="cfg-maxgas" type="number" class="field-input" value="100" min="1" step="1" />
+          </label>
+
+          <label class="field-label">Poll Interval (seconds)
+            <input id="cfg-poll" type="number" class="field-input" value="2" min="0.5" step="0.5" />
+          </label>
+
+          <div class="field-label">Strategies</div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="cfg-arb" checked /> Arbitrage
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="cfg-sandwich" /> Sandwich
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="cfg-liquidation" /> Liquidation
+          </label>
+
+          <div class="btn-group mt-16">
+            <button class="btn btn--primary" id="btn-start">▶ Start</button>
+            <button class="btn btn--warning" id="btn-pause">⏸ Pause</button>
+            <button class="btn btn--danger" id="btn-stop">■ Stop</button>
+          </div>
+          <div id="sim-msg" class="sim-msg"></div>
+        </div>
+
+        <!-- Live metrics panel -->
+        <div class="metrics-panel">
+          <div class="panel-title">📊 Live Metrics</div>
+          <div class="metric-grid" id="live-metrics">
+            <div class="metric-row"><span class="metric-key">Status</span><span class="metric-val" id="m-status">—</span></div>
+            <div class="metric-row"><span class="metric-key">Chain</span><span class="metric-val" id="m-chain">—</span></div>
+            <div class="metric-row"><span class="metric-key">Step</span><span class="metric-val" id="m-step">0</span></div>
+            <div class="metric-row"><span class="metric-key">Block</span><span class="metric-val" id="m-block">—</span></div>
+            <div class="metric-row"><span class="metric-key">Gas</span><span class="metric-val" id="m-gas">—</span></div>
+            <div class="metric-row"><span class="metric-key">Pair cache</span><span class="metric-val" id="m-pairs">0</span></div>
+            <div class="metric-row"><span class="metric-key">Reserve cache</span><span class="metric-val" id="m-res">0</span></div>
+            <div class="metric-row"><span class="metric-key">ETH Balance</span><span class="metric-val" id="m-eth">—</span></div>
+            <div class="metric-row"><span class="metric-key">Total P&amp;L</span><span class="metric-val" id="m-pnl">—</span></div>
+            <div class="metric-row"><span class="metric-key">Trades</span><span class="metric-val" id="m-trades">0</span></div>
+            <div class="metric-row"><span class="metric-key">Win rate</span><span class="metric-val" id="m-win">—</span></div>
+            <div class="metric-row"><span class="metric-key">Errors</span><span class="metric-val" id="m-errors">—</span></div>
+          </div>
+
+          <div class="panel-title mt-16">⚠️ Recent Errors</div>
+          <div id="error-list" class="error-list">None</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- TRADES TAB ------------------------------------------ -->
+    <section id="tab-trades" class="tab-content">
+      <div class="trade-controls">
+        <button class="btn btn--secondary" id="btn-refresh-trades">🔄 Refresh</button>
+        <a class="btn btn--secondary" href="/api/export/csv" download>⬇ Export CSV</a>
+        <span id="agg-stats-label" class="agg-label"></span>
+      </div>
+
+      <!-- Aggregate stats by strategy -->
+      <div class="cards-row mt-8" id="strat-cards"></div>
+
+      <!-- Full trades table -->
+      <div class="table-wrapper mt-8">
+        <table class="data-table" id="all-trades-table">
+          <thead>
+            <tr>
+              <th>Time</th><th>Strategy</th><th>Buy DEX</th><th>Sell DEX</th>
+              <th>In</th><th>Out</th><th>Gas (ETH)</th><th>Profit (ETH)</th><th>Block</th>
+            </tr>
+          </thead>
+          <tbody id="all-trades-body">
+            <tr><td colspan="9" class="empty-row">No trades recorded</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---- LOGS TAB -------------------------------------------- -->
+    <section id="tab-logs" class="tab-content">
+      <div class="log-controls">
+        <label class="checkbox-label">
+          <input type="checkbox" id="log-autoscroll" checked /> Auto-scroll
+        </label>
+        <button class="btn btn--secondary" id="btn-clear-logs">🗑 Clear</button>
+        <span class="log-count" id="log-count">0 events</span>
+      </div>
+      <div id="log-container" class="log-container">
+        <div class="log-entry log-entry--info">Waiting for simulation events…</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    MEV Bot Dashboard — Simulation Mode &nbsp;|&nbsp;
+    Real mainnet data, no transactions sent &nbsp;|&nbsp;
+    <a href="https://github.com/HRnewcoll/MEV-Bots" target="_blank">GitHub</a>
+  </footer>
+
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

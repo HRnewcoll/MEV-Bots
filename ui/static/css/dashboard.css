@@ -1,0 +1,316 @@
+/* ================================================================
+   MEV Bot Dashboard — CSS
+   Clean dark theme with accent colours for the strategy badges
+================================================================ */
+
+/* ----- Reset / base ------------------------------------------ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; }
+body {
+  background: #0d0f14;
+  color: #c9d1d9;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+a { color: #58a6ff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ----- Header ------------------------------------------------- */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  flex-wrap: wrap;
+}
+.header-brand { display: flex; align-items: center; gap: 8px; }
+.logo { font-size: 24px; }
+.brand-name { font-size: 18px; font-weight: 700; color: #f0f6fc; }
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.sep { color: #30363d; }
+.dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot--running  { background: #3fb950; box-shadow: 0 0 6px #3fb950; }
+.dot--paused   { background: #d29922; box-shadow: 0 0 6px #d29922; }
+.dot--stopped  { background: #6e7681; }
+.status-label  { font-weight: 600; color: #f0f6fc; }
+.chain-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #1f6feb;
+  color: #f0f6fc;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.block-label, .gas-label { font-size: 12px; color: #8b949e; }
+
+.header-nav { margin-left: auto; display: flex; gap: 4px; }
+.tab-btn {
+  background: none;
+  border: 1px solid transparent;
+  color: #8b949e;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all .15s;
+}
+.tab-btn:hover { color: #f0f6fc; border-color: #30363d; }
+.tab-btn.active { color: #f0f6fc; background: #21262d; border-color: #30363d; }
+
+/* ----- Main / tabs ------------------------------------------- */
+.main { flex: 1; padding: 20px 24px; overflow-y: auto; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ----- Stat cards row ---------------------------------------- */
+.cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 16px;
+}
+.card--highlight { border-color: #1f6feb; }
+.card-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.card-value { font-size: 22px; font-weight: 700; color: #f0f6fc; }
+.card-value--pos { color: #3fb950; }
+.card-value--neg { color: #f85149; }
+.card-sub { font-size: 11px; color: #8b949e; margin-top: 2px; }
+
+/* ----- Charts row -------------------------------------------- */
+.charts-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.chart-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 16px;
+}
+.chart-title { font-size: 12px; color: #8b949e; text-transform: uppercase; margin-bottom: 8px; }
+
+/* ----- Section titles ---------------------------------------- */
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f0f6fc;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+/* ----- Tables ------------------------------------------------- */
+.table-wrapper {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.data-table th {
+  background: #21262d;
+  color: #8b949e;
+  text-align: left;
+  padding: 8px 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-size: 11px;
+  border-bottom: 1px solid #30363d;
+}
+.data-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #21262d;
+  color: #c9d1d9;
+  white-space: nowrap;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: #1c2128; }
+.empty-row { text-align: center; color: #6e7681; padding: 24px !important; }
+.profit-pos { color: #3fb950; font-weight: 600; }
+.profit-neg { color: #f85149; font-weight: 600; }
+.strategy-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.strat--arbitrage  { background: #1f3a5c; color: #79c0ff; }
+.strat--sandwich   { background: #3d2b1a; color: #ffa657; }
+.strat--liquidation{ background: #2b1d3d; color: #d2a8ff; }
+.strat--flash_loan { background: #1d3a2b; color: #56d364; }
+
+/* ----- Simulation tab layout --------------------------------- */
+.sim-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 16px;
+}
+@media (max-width: 768px) { .sim-layout { grid-template-columns: 1fr; } }
+
+.config-panel, .metrics-panel {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 20px;
+}
+.panel-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f0f6fc;
+  margin-bottom: 16px;
+}
+.mt-16 { margin-top: 16px !important; }
+.mt-8 { margin-top: 8px !important; }
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  color: #8b949e;
+  margin-bottom: 12px;
+}
+.field-input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 7px 10px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  color: #c9d1d9;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s;
+}
+.field-input:focus { border-color: #1f6feb; }
+select.field-input { cursor: pointer; }
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #c9d1d9;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.checkbox-label input[type="checkbox"] { accent-color: #1f6feb; }
+
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: opacity .15s;
+}
+.btn:hover { opacity: .85; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn--primary  { background: #238636; color: #fff; }
+.btn--warning  { background: #9e6a03; color: #fff; }
+.btn--danger   { background: #b62324; color: #fff; }
+.btn--secondary{ background: #21262d; color: #c9d1d9; border: 1px solid #30363d; }
+
+.sim-msg {
+  margin-top: 10px;
+  font-size: 12px;
+  min-height: 18px;
+}
+.sim-msg--ok  { color: #3fb950; }
+.sim-msg--err { color: #f85149; }
+
+/* Metric grid */
+.metric-grid { display: flex; flex-direction: column; gap: 0; }
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #21262d;
+  font-size: 13px;
+}
+.metric-row:last-child { border-bottom: none; }
+.metric-key { color: #8b949e; }
+.metric-val { color: #f0f6fc; font-weight: 600; }
+
+.error-list {
+  font-size: 12px;
+  color: #f85149;
+  min-height: 20px;
+  line-height: 1.6;
+}
+
+/* ----- Trades tab -------------------------------------------- */
+.trade-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.agg-label { font-size: 12px; color: #8b949e; margin-left: 8px; }
+
+/* ----- Logs tab ---------------------------------------------- */
+.log-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.log-count { font-size: 12px; color: #8b949e; margin-left: auto; }
+.log-container {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 12px;
+  height: 520px;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.log-entry { padding: 1px 0; }
+.log-entry--info    { color: #8b949e; }
+.log-entry--trade   { color: #3fb950; }
+.log-entry--error   { color: #f85149; }
+.log-entry--block   { color: #8b949e; font-size: 11px; }
+.log-entry--started { color: #79c0ff; font-weight: 600; }
+.log-entry--stopped { color: #ffa657; font-weight: 600; }
+.log-ts { color: #6e7681; margin-right: 6px; }
+
+/* ----- Footer ------------------------------------------------ */
+.footer {
+  text-align: center;
+  padding: 10px 24px;
+  font-size: 11px;
+  color: #6e7681;
+  border-top: 1px solid #21262d;
+}

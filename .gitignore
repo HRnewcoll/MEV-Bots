@@ -25,6 +25,14 @@ deployed_addresses.json
 # Logs
 logs/
 
+# Simulation runtime data (trade history, CSV exports)
+simulator_data/
+
+# Node (used only to bundle Chart.js static asset)
+node_modules/
+package.json
+package-lock.json
+
 # Editor
 .idea/
 .vscode/

@@ -94,10 +94,106 @@ python bot.py
 
 ---
 
+## 🧪 Simulation Mode — Test Without Funds
+
+Run any strategy against **real mainnet data** without sending a single transaction.
+The simulation engine uses read-only RPC calls to fetch live prices and reserve data,
+then applies the exact same Uniswap V2 math the bots use — so results accurately reflect
+what would have happened on-chain.
+
+```bash
+cd simulator
+pip install -r requirements.txt
+
+# Run a quick arbitrage simulation from the command line
+python -c "
+import asyncio, sys
+sys.path.insert(0, '..')
+from simulator.engine import SimulationEngine, SimConfig
+
+cfg = SimConfig(
+    chain='ethereum',
+    strategies=['arbitrage', 'sandwich', 'liquidation'],
+    initial_eth=10.0,
+    trade_amount_eth=0.1,
+    min_profit_eth=0.0005,
+    poll_interval_s=2.0,
+)
+asyncio.run(SimulationEngine(cfg).run(max_steps=20))
+"
+```
+
+Key features of the simulation engine:
+- **Real data** — reads live reserves from on-chain via read-only RPC (no private key needed)
+- **LRU caching** — pair addresses cached permanently; reserves cached per block to minimise RPC calls
+- **Batch fetching** — parallel `asyncio.gather` for all DEX quotes in a single event-loop tick
+- **Paper wallet** — tracks virtual balances, per-trade P&L, win rate, and gas spend
+- **Persistent history** — all simulated trades appended to `simulator_data/trades.jsonl` (JSONL)
+- **CSV export** — one-click export from the UI or via `TradeRecorder.export_csv()`
+
+---
+
+## 🖥️ Web Dashboard (GUI)
+
+A clean dark-theme web dashboard built with **Flask + Chart.js** — no Node.js build
+step required, no React, just plain Python + HTML/CSS/JS.
+
+```bash
+# Install UI dependencies
+cd ui
+pip install -r requirements.txt
+
+# Start the dashboard (default: http://127.0.0.1:5000)
+python app.py
+
+# Custom host/port
+UI_HOST=0.0.0.0 UI_PORT=8080 python app.py
+```
+
+### Dashboard features
+
+| Tab | What it shows |
+|-----|---------------|
+| **Dashboard** | Live P&L cards · Cumulative P&L line chart · Trades-by-Strategy doughnut · Gas history · Recent trades table |
+| **Simulation** | Configuration panel (chain, RPC, balances, strategies, gas limits) · Start / Pause / Stop controls · Live metrics grid (step, block, cache sizes, win rate) |
+| **Trades** | Full paginated trade history · Per-strategy aggregate cards · CSV export |
+| **Logs** | Real-time SSE event stream · Auto-scroll · Clear button |
+
+### REST API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET`  | `/api/status` | Engine status + wallet stats |
+| `GET`  | `/api/trades` | Recent simulated trades (JSON) |
+| `GET`  | `/api/stats`  | Aggregate P&L from disk history |
+| `GET`  | `/api/events` | Recent event log |
+| `GET`  | `/api/chains` | Available chains + DEXs |
+| `POST` | `/api/start`  | Start simulation with config body |
+| `POST` | `/api/stop`   | Stop simulation |
+| `POST` | `/api/pause`  | Pause / resume toggle |
+| `GET`  | `/api/stream` | SSE real-time event stream |
+| `GET`  | `/api/export/csv` | Download trades as CSV |
+
+---
+
 ## Directory Structure
 
 ```
 MEV-Bots/
+├── simulator/               # 🧪 Paper-trading simulation engine
+│   ├── engine.py            #   Main simulation loop (all strategies)
+│   ├── paper_wallet.py      #   Virtual balance + P&L tracker
+│   ├── market_data.py       #   Read-only live data fetcher (cached)
+│   ├── recorder.py          #   JSONL trade history + CSV export
+│   └── requirements.txt
+├── ui/                      # 🖥️ Flask web dashboard
+│   ├── app.py               #   Flask server + REST API + SSE stream
+│   ├── requirements.txt
+│   ├── templates/
+│   │   └── index.html       #   Dashboard, Simulation, Trades, Logs tabs
+│   └── static/
+│       ├── css/dashboard.css
+│       └── js/dashboard.js  #   Charts, SSE client, controls
 ├── python/
 │   ├── arbitrage_bot/       # Cross-DEX arbitrage (web3.py)
 │   ├── sandwich_bot/        # Sandwich attack bot
@@ -213,6 +309,8 @@ bash ../scripts/deploy.sh
 - **Multi-chain support** — One codebase, many networks
 - **AI-powered** — LSTM price prediction, MLP opportunity classification, PPO reinforcement learning
 - **ONNX inference in Rust** — Export trained models from Python; run at nanosecond latency in Rust
+- **🧪 Simulation mode** — Paper-trade using real live mainnet data with zero capital required
+- **🖥️ Web dashboard** — Full GUI with live charts, P&L tracking, trade history, and SSE log streaming
 - **Gas optimization** — Dynamic gas pricing with EIP-1559 support
 - **Mempool monitoring** — Real-time pending transaction tracking
 - **Flashbots / MEV-Boost** — Private transaction bundles to avoid front-running
@@ -220,6 +318,7 @@ bash ../scripts/deploy.sh
 - **Profit simulation** — Off-chain simulation before on-chain execution
 - **Risk management** — Configurable slippage, max gas, and position limits
 - **Async execution** — High-throughput non-blocking I/O
+- **Caching layer** — LRU pair address cache + TTL reserve cache to minimise RPC calls
 
 ---
 
