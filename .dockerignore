@@ -1,0 +1,46 @@
+# Don't copy these into the Docker build context
+
+# Git history
+.git
+.gitignore
+
+# Python artifacts
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.pytest_cache
+.coverage
+htmlcov/
+
+# Virtual environments
+**/.venv
+
+# Rust build (not needed inside the Python image)
+rust/
+target/
+
+# Large ML artifacts
+checkpoints/
+*.pt
+*.onnx
+*.pkl
+
+# Simulator runtime data (mounted via Docker volume)
+simulator_data/
+
+# Secrets / credentials
+**/.env
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Node
+node_modules/
+
+# Test files (not needed at runtime)
+tests/

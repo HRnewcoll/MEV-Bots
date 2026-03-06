@@ -10,6 +10,17 @@ A comprehensive collection of **Maximal Extractable Value (MEV)** bots implement
 
 > **No funds or private key needed for simulation mode!**
 
+### 🐳 Option A — Docker (zero Python install required)
+
+```bash
+docker compose up          # builds image and starts dashboard
+# Then open: http://localhost:5000
+```
+
+Stop with `Ctrl+C`, or run in background with `docker compose up -d`.
+
+### 🐍 Option B — Python directly
+
 ### Step 1 — Install Python dependencies (once)
 
 ```bash
@@ -51,6 +62,18 @@ python run.py --no-browser         # don't auto-open browser
 python run.py --debug              # hot-reload mode for development
 python run.py --help               # full option list
 ```
+
+---
+
+## 🧪 Running Tests
+
+```bash
+pip install pytest
+pytest tests/ -v
+```
+
+98 tests covering the simulation engine, paper wallet, trade recorder, market data math,
+and all Flask API endpoints — all passing with no network calls required.
 
 ---
 

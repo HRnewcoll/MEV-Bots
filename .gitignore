@@ -42,3 +42,11 @@ package-lock.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker
+# .dockerignore is intentionally tracked — don't add it here

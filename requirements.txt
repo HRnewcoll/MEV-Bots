@@ -11,3 +11,6 @@ aiohttp>=3.9.0
 
 # Shared utilities
 python-dotenv>=1.0.0
+
+# Testing (install automatically when running `pytest`)
+# pip install pytest   (or: pip install -r requirements.txt && pip install pytest)
