@@ -142,6 +142,78 @@ def api_chains():
     })
 
 
+@app.route("/api/setup_check")
+def api_setup_check():
+    """Return a checklist of setup items so the UI can guide new users."""
+    import importlib
+
+    checks = []
+
+    # Python packages
+    for pkg in ("flask", "web3", "aiohttp", "dotenv"):
+        ok = False
+        try:
+            importlib.import_module(pkg)
+            ok = True
+        except ImportError:
+            pass
+        checks.append({"id": f"pkg_{pkg}", "label": f"Python package: {pkg}",
+                        "ok": ok, "fix": f"pip install {pkg}"})
+
+    # simulator_data directory
+    sim_data = _REPO_ROOT / "simulator_data"
+    checks.append({
+        "id": "sim_data_dir",
+        "label": "simulator_data/ directory exists",
+        "ok": sim_data.is_dir(),
+        "fix": "mkdir simulator_data  (or run: python run.py)",
+    })
+
+    # .env files
+    for bot in ("arbitrage_bot", "sandwich_bot", "liquidation_bot", "flash_loan_bot"):
+        env_path = _REPO_ROOT / "python" / bot / ".env"
+        example_path = env_path.with_suffix(".env.example")
+        has_env = env_path.exists()
+        has_rpc = False
+        if has_env:
+            try:
+                content = env_path.read_text()
+                has_rpc = "RPC_URL" in content and "your" not in content.lower()
+            except Exception:
+                pass
+        checks.append({
+            "id": f"env_{bot}",
+            "label": f"python/{bot}/.env exists",
+            "ok": has_env,
+            "fix": f"cp python/{bot}/.env.example python/{bot}/.env  then edit it",
+        })
+        if has_env:
+            checks.append({
+                "id": f"rpc_{bot}",
+                "label": f"python/{bot}/.env — RPC URL configured",
+                "ok": has_rpc,
+                "fix": f"Edit python/{bot}/.env and set ETH_RPC_URL (or chain equivalent)",
+            })
+
+    # Simulator_data writable
+    try:
+        test_file = sim_data / ".write_test"
+        test_file.touch()
+        test_file.unlink()
+        writable = True
+    except Exception:
+        writable = False
+    checks.append({
+        "id": "sim_data_writable",
+        "label": "simulator_data/ is writable",
+        "ok": writable,
+        "fix": "chmod 755 simulator_data",
+    })
+
+    all_ok = all(c["ok"] for c in checks)
+    return jsonify({"all_ok": all_ok, "checks": checks})
+
+
 # ---------------------------------------------------------------------------
 # API — Control
 # ---------------------------------------------------------------------------

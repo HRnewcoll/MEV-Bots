@@ -32,6 +32,7 @@
       <button class="tab-btn" data-tab="simulation">Simulation</button>
       <button class="tab-btn" data-tab="trades">Trades</button>
       <button class="tab-btn" data-tab="logs">Logs</button>
+      <button class="tab-btn" data-tab="setup">⚙ Setup</button>
     </nav>
   </header>
 
@@ -227,6 +228,150 @@
       </div>
       <div id="log-container" class="log-container">
         <div class="log-entry log-entry--info">Waiting for simulation events…</div>
+      </div>
+    </section>
+
+    <!-- ---- SETUP TAB ------------------------------------------- -->
+    <section id="tab-setup" class="tab-content">
+      <div class="setup-layout">
+
+        <!-- Quick start card -->
+        <div class="setup-card setup-card--wide">
+          <div class="panel-title">🚀 Quick Start (3 steps)</div>
+          <ol class="qs-steps">
+            <li>
+              <span class="qs-num">1</span>
+              <div>
+                <strong>Install dependencies</strong> — run once from the repository root:
+                <pre class="code-block">pip install -r requirements.txt</pre>
+                <span class="qs-hint">or on Linux / macOS: <code>bash scripts/setup.sh --quick</code></span>
+              </div>
+            </li>
+            <li>
+              <span class="qs-num">2</span>
+              <div>
+                <strong>Launch the dashboard</strong> — from the repository root:
+                <pre class="code-block">python run.py</pre>
+                <span class="qs-hint">Windows: double-click <code>start.bat</code> &nbsp;|&nbsp; Mac/Linux: <code>bash start.sh</code></span>
+              </div>
+            </li>
+            <li>
+              <span class="qs-num">3</span>
+              <div>
+                <strong>Start a simulation</strong> — click the <em>Simulation</em> tab, choose a chain &amp; strategy, then click <strong>▶ Start</strong>.
+                <br>No funds or private key needed for simulation mode!
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <!-- Setup checklist -->
+        <div class="setup-card">
+          <div class="setup-check-header">
+            <div class="panel-title">✅ Setup Checklist</div>
+            <button class="btn btn--secondary" id="btn-recheck" style="font-size:12px;padding:5px 10px">🔄 Re-check</button>
+          </div>
+          <div id="setup-checklist" class="setup-checklist">
+            <div class="check-loading">Loading…</div>
+          </div>
+        </div>
+
+        <!-- Command reference -->
+        <div class="setup-card">
+          <div class="panel-title">💻 Command Reference</div>
+          <table class="cmd-table">
+            <tbody>
+              <tr><td class="cmd-label">Launch dashboard</td><td><code>python run.py</code></td></tr>
+              <tr><td class="cmd-label">Custom port</td><td><code>python run.py --port 8080</code></td></tr>
+              <tr><td class="cmd-label">Local network access</td><td><code>python run.py --host 0.0.0.0</code></td></tr>
+              <tr><td class="cmd-label">No auto-browser</td><td><code>python run.py --no-browser</code></td></tr>
+              <tr><td class="cmd-label">Debug / hot-reload</td><td><code>python run.py --debug</code></td></tr>
+              <tr><td class="cmd-label">Quick setup (Unix)</td><td><code>bash scripts/setup.sh --quick</code></td></tr>
+              <tr><td class="cmd-label">Full setup (all bots)</td><td><code>bash scripts/setup.sh</code></td></tr>
+              <tr><td class="cmd-label">Windows launcher</td><td><code>start.bat</code> (double-click)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- What each strategy does -->
+        <div class="setup-card">
+          <div class="panel-title">📖 Strategy Guide</div>
+          <div class="strat-guide">
+            <div class="strat-item">
+              <span class="strategy-badge strat--arbitrage">Arbitrage</span>
+              <div class="strat-desc">
+                Compares token prices across multiple DEXs on the same chain. Buys on the cheapest DEX,
+                sells on the most expensive. Profit = price difference minus gas cost.
+                <br><em>Risk: low. Capital needed: yes (simulated here).</em>
+              </div>
+            </div>
+            <div class="strat-item">
+              <span class="strategy-badge strat--sandwich">Sandwich</span>
+              <div class="strat-desc">
+                Detects large pending swaps in the mempool. Places a buy order just before them and a
+                sell order just after, profiting from the price impact.
+                <br><em>Risk: medium. Requires fast execution &amp; Flashbots.</em>
+              </div>
+            </div>
+            <div class="strat-item">
+              <span class="strategy-badge strat--liquidation">Liquidation</span>
+              <div class="strat-desc">
+                Monitors undercollateralized lending positions on Aave / Compound.
+                When a position falls below the health threshold, liquidates it to earn the bonus.
+                <br><em>Risk: medium. Requires capital in the debt token.</em>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="setup-card setup-card--wide">
+          <div class="panel-title">❓ FAQ</div>
+          <div class="faq-list">
+            <details class="faq-item">
+              <summary>Do I need a private key to use the simulator?</summary>
+              <p>No. The simulator only makes read-only RPC calls to fetch prices — it never
+              sends transactions. You can test any strategy without any wallet or funds.</p>
+            </details>
+            <details class="faq-item">
+              <summary>What RPC URL should I use?</summary>
+              <p>The simulator comes pre-configured with free public RPCs for each chain.
+              For better reliability use a dedicated endpoint from
+              <a href="https://alchemy.com" target="_blank">Alchemy</a>,
+              <a href="https://infura.io" target="_blank">Infura</a>, or
+              <a href="https://quicknode.com" target="_blank">QuickNode</a>.
+              Free tiers are sufficient for simulation.</p>
+            </details>
+            <details class="faq-item">
+              <summary>What does "paper trading" mean?</summary>
+              <p>Paper trading means running the bot logic against real live market data,
+              but <em>simulating</em> the trades instead of executing them on-chain.
+              Your virtual balance goes up or down based on what the real trades would have returned,
+              letting you evaluate a strategy's performance risk-free.</p>
+            </details>
+            <details class="faq-item">
+              <summary>How do I use the real (live) bots?</summary>
+              <p>The live Python bots are in <code>python/</code>. Each has a <code>.env</code> file
+              where you set your RPC URL and private key. Run <code>bash scripts/setup.sh</code>
+              to install their dependencies, then navigate into the bot directory and run
+              <code>python bot.py</code>.
+              ⚠️ Only use real bots after thorough simulation testing — they spend real gas.</p>
+            </details>
+            <details class="faq-item">
+              <summary>Trades are not showing up — what's wrong?</summary>
+              <p>The simulation calls public RPCs to read live prices. If those RPCs are unreachable
+              (e.g. in a restricted network), prices won't be fetched and no trades will fire.
+              Try entering your own RPC URL in the Simulation tab config panel.</p>
+            </details>
+            <details class="faq-item">
+              <summary>Can I access the dashboard from another device?</summary>
+              <p>Yes. Launch with <code>python run.py --host 0.0.0.0</code> and navigate to
+              <code>http://&lt;your-ip&gt;:5000</code> on the other device. Make sure your firewall
+              allows the port.</p>
+            </details>
+          </div>
+        </div>
+
       </div>
     </section>
 

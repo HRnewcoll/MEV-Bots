@@ -15,6 +15,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
     if (btn.dataset.tab === 'trades') refreshTrades();
+    if (btn.dataset.tab === 'setup')  refreshSetupCheck();
   });
 });
 
@@ -379,6 +380,33 @@ document.getElementById('btn-pause').addEventListener('click', async () => {
 });
 
 document.getElementById('btn-refresh-trades').addEventListener('click', refreshTrades);
+document.getElementById('btn-recheck').addEventListener('click', refreshSetupCheck);
+
+// ----------------------------------------------------------------
+// Setup tab
+// ----------------------------------------------------------------
+async function refreshSetupCheck() {
+  const el = document.getElementById('setup-checklist');
+  el.innerHTML = '<div class="check-loading">Checking…</div>';
+  try {
+    const resp = await fetch('/api/setup_check');
+    const data = await resp.json();
+    const checks = data.checks || [];
+    if (checks.length === 0) {
+      el.innerHTML = '<div class="check-loading">No checks available</div>';
+      return;
+    }
+    el.innerHTML = checks.map(c => `
+      <div class="check-item ${c.ok ? 'check-item--ok' : 'check-item--fail'}">
+        <span class="check-icon">${c.ok ? '✅' : '❌'}</span>
+        <span class="check-label">${c.label}</span>
+        ${!c.ok ? `<span class="check-fix">${c.fix}</span>` : ''}
+      </div>
+    `).join('');
+  } catch {
+    el.innerHTML = '<div class="check-loading" style="color:#f85149">Could not load setup status</div>';
+  }
+}
 
 function showSimMsg(msg, isErr) {
   const el = document.getElementById('sim-msg');
@@ -393,3 +421,21 @@ function showSimMsg(msg, isErr) {
 connectSSE();
 refreshStatus();
 setInterval(refreshStatus, 3000);
+
+// On first load, auto-switch to Setup tab so new users see the quick-start guide.
+// Uses localStorage so it only happens once — not every time a simulation is stopped.
+(async () => {
+  const seen = localStorage.getItem('setup_tab_seen');
+  if (!seen) {
+    try {
+      const s = await (await fetch('/api/status')).json();
+      if (!s.running) {
+        const setupBtn = document.querySelector('[data-tab="setup"]');
+        if (setupBtn) {
+          setupBtn.click();
+          localStorage.setItem('setup_tab_seen', '1');
+        }
+      }
+    } catch {}
+  }
+})();

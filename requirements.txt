@@ -1,0 +1,13 @@
+# MEV Bots — root requirements
+# Install everything needed to run the simulator and web dashboard:
+#   pip install -r requirements.txt
+
+# Web dashboard (Flask)
+flask>=3.0.0
+
+# Simulation engine + on-chain data
+web3>=6.0.0
+aiohttp>=3.9.0
+
+# Shared utilities
+python-dotenv>=1.0.0

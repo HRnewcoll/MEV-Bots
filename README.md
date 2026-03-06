@@ -6,6 +6,54 @@ A comprehensive collection of **Maximal Extractable Value (MEV)** bots implement
 
 ---
 
+## ⚡ Quick Start — 3 Steps
+
+> **No funds or private key needed for simulation mode!**
+
+### Step 1 — Install Python dependencies (once)
+
+```bash
+pip install -r requirements.txt
+```
+
+Or use the setup script (also sets up Rust bots and Solidity):
+
+```bash
+bash scripts/setup.sh --quick   # Python + dashboard only
+bash scripts/setup.sh           # everything including Rust + Foundry
+```
+
+### Step 2 — Launch the dashboard
+
+```bash
+python run.py                   # Linux / macOS / Windows
+bash start.sh                   # Linux / macOS shortcut
+# or double-click start.bat     # Windows shortcut
+```
+
+The dashboard automatically opens in your browser at **http://127.0.0.1:5000**.
+
+### Step 3 — Start a simulation
+
+1. Open the **Simulation** tab
+2. Choose a **chain** (Ethereum, BSC, Polygon)
+3. Choose **strategies** (Arbitrage, Sandwich, Liquidation)
+4. Click **▶ Start**
+
+Watch real-time P&L, charts, and trade history update live — all without spending a penny.
+
+#### Other launch options
+
+```bash
+python run.py --port 8080          # custom port
+python run.py --host 0.0.0.0       # accessible from other devices on your LAN
+python run.py --no-browser         # don't auto-open browser
+python run.py --debug              # hot-reload mode for development
+python run.py --help               # full option list
+```
+
+---
+
 ## What is MEV?
 
 Maximal Extractable Value (MEV) refers to the maximum value that can be extracted from block production in excess of the standard block reward and gas fees by including, excluding, or reordering transactions within a block.
@@ -231,12 +279,14 @@ MEV-Bots/
 
 ---
 
-## Quick Start
+## Running Individual Bots (Live / Production Mode)
+
+> ⚠️ Real bots send transactions and spend gas. Always simulate first.
 
 ### Python Bots
 
 ```bash
-# Install Python dependencies
+# Install Python dependencies for a specific bot
 cd python/arbitrage_bot
 pip install -r requirements.txt
 
