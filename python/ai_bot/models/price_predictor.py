@@ -229,7 +229,11 @@ class PricePredictor:
             loss = criterion(logits, y)
         return float(loss.item())
 
+    # ------------------------------------------------------------------
+    # Persistence
+    # ------------------------------------------------------------------
 
+    def save(self, path: str) -> None:
         if not _TORCH_AVAILABLE or self.model is None:
             return
         import torch
