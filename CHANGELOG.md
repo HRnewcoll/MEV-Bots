@@ -9,6 +9,78 @@ Format: [Semantic Versioning](https://semver.org/) — `[MAJOR.MINOR.PATCH] — 
 
 ---
 
+## [0.4.0] — 2026-03-07
+
+### Added — Separate Neural Network AI Bots (`python/nn_bots/`)
+
+Two architecturally distinct neural network bots, each with their own training
+pipeline, configuration, and graceful PyTorch-absent fallback:
+
+#### `python/nn_bots/transformer_arb_bot/`
+- **Architecture:** Multi-head self-attention Transformer encoder over a sequence of
+  per-DEX feature vectors.  Learns cross-DEX dependencies — e.g. "when reserve depth
+  drops on Uniswap, SushiSwap tends to widen its spread."
+- `model.py` — `TransformerArbModel`:
+  - `_PositionalEncoding` — sinusoidal positional encoding for DEX sequences
+  - `_TransformerEncoder` — Pre-LN transformer encoder + pairwise profit-score head
+  - `extract_dex_features()` — static 10-dim feature vector per DEX snapshot
+  - `build_feature_matrix()` — (num_dexs, 10) matrix from list of snapshots
+  - `score_pairs()` — (num_dexs, num_dexs) profit logit matrix; diagonal masked
+  - `best_pair()` — top (buy_dex, sell_dex) with arithmetic verification
+  - `train_step()` / `validate()` / `save()` / `load()`
+  - Heuristic fallback (reserve-spread) when PyTorch is absent
+- `bot.py` — async `TransformerArbBot`: fetches live reserves, runs model, verifies arb arithmetically, executes two-leg swap
+- `config.py` — `TransformerBotConfig` dataclass
+- `training/train.py` — synthetic supervised training; saves best checkpoint
+- `requirements.txt`, `.env.example`
+
+#### `python/nn_bots/graph_arb_bot/`
+- **Architecture:** Graph Neural Network with K rounds of message-passing over the
+  token-pool graph (tokens = nodes, liquidity pools = directed edges).  Node embeddings
+  propagate global liquidity context; an edge profit-scoring head ranks every directed pool.
+- `model.py` — `TokenGraph` + `GNNArbModel`:
+  - `TokenGraph` — dynamic directed graph; `add_pool()`, `to_tensors()`, `best_single_hop_heuristic()`
+  - `_MessagePassingLayer` — `[src || dst || edge_feat] → message → GRUCell update`
+  - `_GNNModule` — K message-passing rounds + edge profit head
+  - `score_edges()` — (num_edges,) profit logits
+  - `best_cycle()` — top 2-hop arbitrage cycle with arithmetic verification
+  - `train_step()` / `validate()` / `save()` / `load()`
+  - Bellman-Ford heuristic fallback when PyTorch is absent
+  - `_v2_out_with_fee()` — generalised V2 formula for any `fee_bps`
+- `bot.py` — async `GraphArbBot`: builds live `TokenGraph`, runs GNN, executes cycle
+- `config.py` — `GNNBotConfig` dataclass
+- `training/train.py` — random graph generation + profitability labelling + training loop
+- `requirements.txt`, `.env.example`
+
+### Added — Tests for new bots
+- `tests/test_transformer_model.py` — 36 tests (25 run without PyTorch, 11 need torch):
+  `_uniswap_v2_out`, `_compute_price_impact`, feature extraction, matrix building, heuristic inference,
+  PyTorch forward pass shape, diagonal masking, training, save/load
+- `tests/test_gnn_model.py` — 40 tests (29 run without PyTorch, 11 need torch):
+  `_v2_out_with_fee`, `_pool_edge_features`, `TokenGraph` construction/tensor conversion,
+  heuristic cycle finding, GNN edge scoring, training, save/load
+
+  **Running total: 163 tests — 163 pass, 11 skip (PyTorch-only — will pass with torch installed)**
+
+### Fixed
+- `python/ai_bot/models/price_predictor.py` — `save()` method was dead code (missing `def`
+  header after `validate()`) — restored as a properly declared method
+
+### Added — RESOURCES.md
+- Curated reference list of **35+ related MEV bot repositories** from the broader community:
+  Top bots, sandwich bots, mempool scanners, multi-chain bots, frameworks & tools,
+  profitable bots, Telegram bots, specialised MEV, monitoring tools, and learning resources
+- Structured as tables by category with language tags
+- Includes quick profit estimates and requirements checklist
+- Links back to the repo's own simulator for safe practice
+
+### Changed
+- `README.md` — bot table extended with Transformer and GNN entries; test count updated;
+  new "Related Resources" section pointing at `RESOURCES.md`
+- `CHANGELOG.md` — this entry
+
+---
+
 ## [0.3.0] — 2026-03-06
 
 ### Added — Tests (`tests/`)

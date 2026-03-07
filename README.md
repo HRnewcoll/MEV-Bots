@@ -72,8 +72,9 @@ pip install pytest
 pytest tests/ -v
 ```
 
-98 tests covering the simulation engine, paper wallet, trade recorder, market data math,
-and all Flask API endpoints — all passing with no network calls required.
+163 tests covering the simulation engine, paper wallet, trade recorder, market data math,
+Flask API endpoints, and both new neural network model architectures — all passing with
+no network calls required (11 PyTorch-specific tests skip gracefully when torch is absent).
 
 ---
 
@@ -89,12 +90,21 @@ Maximal Extractable Value (MEV) refers to the maximum value that can be extracte
 | [Sandwich Bot](python/sandwich_bot/) | Python | EVM | Front-run + back-run victim swaps |
 | [Liquidation Bot](python/liquidation_bot/) | Python | EVM (Aave, Compound, dYdX) | Liquidate undercollateralized positions |
 | [Flash Loan Bot](python/flash_loan_bot/) | Python | EVM (Aave v3) | Flash loan–powered atomic arbitrage |
-| [**AI MEV Bot**](python/ai_bot/) | **Python** | **EVM** | **LSTM price predictor + MLP classifier + PPO RL agent** |
+| [AI MEV Bot](python/ai_bot/) | Python | EVM | LSTM price predictor + MLP classifier + PPO RL agent |
+| [**Transformer Arb Bot**](python/nn_bots/transformer_arb_bot/) | **Python** | **EVM** | **Multi-head self-attention Transformer over DEX sequences** |
+| [**GNN Arb Bot**](python/nn_bots/graph_arb_bot/) | **Python** | **EVM** | **Graph Neural Network over token-pool graph — multi-hop arbitrage** |
 | [Arbitrage Bot](rust/arbitrage_bot/) | Rust | EVM | High-performance cross-DEX arbitrage |
 | [Sandwich Bot](rust/sandwich_bot/) | Rust | EVM | High-performance sandwich attacks |
 | [Solana MEV Bot](rust/solana_bot/) | Rust | Solana | Arbitrage on Raydium / Orca |
-| [**AI MEV Bot**](rust/ai_bot/) | **Rust** | **EVM** | **ONNX Runtime inference — runs exported PyTorch/SB3 models** |
+| [AI MEV Bot](rust/ai_bot/) | Rust | EVM | ONNX Runtime inference — runs exported PyTorch/SB3 models |
 | [Flash Loan Contract](contracts/) | Solidity | EVM | On-chain flash loan arbitrage |
+
+---
+
+## 📚 Related Resources
+
+See [RESOURCES.md](RESOURCES.md) for a curated list of 35+ related MEV bot repositories,
+frameworks, and learning materials from the wider community.
 
 ---
 
