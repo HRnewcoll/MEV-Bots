@@ -1,0 +1,52 @@
+# Python virtual environments
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment / secrets
+.env
+*.env
+
+# Model checkpoints (large binary files)
+checkpoints/
+*.pt
+*.onnx
+*.pkl
+
+# Rust build artifacts
+target/
+
+# Deployed addresses (auto-generated)
+deployed_addresses.json
+
+# Logs
+logs/
+
+# Simulation runtime data (trade history, CSV exports)
+simulator_data/
+
+# Node (used only to bundle Chart.js static asset)
+node_modules/
+package.json
+package-lock.json
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker
+# .dockerignore is intentionally tracked — don't add it here
